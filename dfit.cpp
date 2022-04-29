@@ -121,26 +121,26 @@ vector<long double> EXP_MODEL_GRAD_dS_da(vector<long double>& residuals, vector<
 // Returns vector containing optimised model parameters (and final MSR) as calculated by steepest descent
 // Start by implementing algorithm for just the small exponential model --> then expand for model choice
 // init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
-// vector<long double> minimise_msr(vector<long double>& x_vals, vector<long double>& y_data, vector<long double>& init_param, int set_size)
-// {
-// 	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
-// 	int num_parameters = 2; // Recall that we're just starting with the exp model
-// 	int max_iteration = 10000; // maximum number of iterations before giving up
-//
-// 	long double lambda = 0.001; // greed parameter
-// 	long double delta_s; // change in S from step to step;
-// 	// Calculate the vector?
-//
-// 	// Calculate the initial residuals, S, vector
-// 	vector<long double> residuals = CalcRes()
-//
-// 	int i = 0;
-// 	while(i < max_iteration) // we'll bring in the other criteria
-// 	{
-//
-// 		++i;
-// 	}
-// }
+vector<long double> minimise_msr(vector<long double>& x_vals, vector<long double>& y_data, vector<long double>& init_param, int set_size)
+{
+	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
+	int num_parameters = 2; // Recall that we're just starting with the exp model
+	int max_iteration = 10000; // maximum number of iterations before giving up
+
+	long double lambda = 0.001; // greed parameter
+	long double delta_s; // change in S from step to step;
+	// Calculate the vector?
+
+	// Calculate the initial residuals, S, vector
+	vector<long double> residuals = CalcRes()
+
+	int i = 0;
+	while(i < max_iteration) // we'll bring in the other criteria
+	{
+
+		++i;
+	}
+}
 
 
 //TEST
