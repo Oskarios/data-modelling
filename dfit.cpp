@@ -106,13 +106,30 @@ namespace DBG
 		{
 			cout << test_name << " 1 FAIL" << std::endl;
 		}
-		//TEST 2
+		//TEST 2 -- we could require catching at x=0 and other similar cases
 
 	}
 
 	void TEST_MODEL_POLY(std::string test_name)
 	{
+		cout << "\n" << test_name << std::endl;
+		vector<long double> t_pm;
+		long double x;
+		// TEST 1 : 4.2 + 2.1x + 3.4x^2 + 5x^3; x = 0.2
+		t_pm = {4.2l,2.1l,3.4l,5.0l};
+		x = 0.2l;
+		long double expected = t_pm[0] + t_pm[1]*x + t_pm[2]*x*x + t_pm[3]*x*x*x;
 
+		if(MODEL_POLY(x,t_pm,4) == expected)
+		{
+			cout << test_name << " 1 PASS" << std::endl;
+		} else
+		{
+			cout << test_name << " 1 FAIL" << std::endl;
+		}
+
+		cout << MODEL_POLY(x,t_pm,4) << std::endl;
+		cout << expected << std::endl;
 	}
 
 }
@@ -124,6 +141,8 @@ int main()
 	DBG::TEST_CalcRes("TEST: Calculating Residuals");
 
 	DBG::TEST_MODEL_EXP("TEST: Calculating model");
+
+	DBG::TEST_MODEL_POLY("TEST: Calculating polynomial model");
 
 	// Choose the dataset
 
