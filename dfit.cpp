@@ -6,6 +6,20 @@ using std::vector;
 using std::cout;
 using std::cin;
 
+
+//Calculate the residuals -- returns the form as a vector
+vector<long double> CalcRes(vector<long double>& y_val, vector<long double>& model, int& size)
+{
+	long double res;
+	vector<long double> res_vec;
+	for(int i=0; i < size; ++i)
+	{
+		res = y_val[i]-model[i];
+		res_vec.push_back(res);
+	}
+	return res_vec;
+}
+
 // Should make this more good later but good for now
 void DEBUG_PrintVec(vector<long double>& input_vec, int size)
 {
@@ -22,20 +36,6 @@ void DEBUG_PrintVec(vector<long double>& input_vec, vector<long double> expected
 		cout << "INPUT VEC; i=" << i << " VAL: " << input_vec[i] << " EXP: "<< expected[i] << std::endl;
 	}
 }
-
-//Calculate the residuals -- returns the form as a vector
-vector<long double> CalcRes(vector<long double>& y_val, vector<long double>& model, int& size)
-{
-	long double res;
-	vector<long double> res_vec;
-	for(int i=0; i < size; ++i)
-	{
-		res = y_val[i]-model[i];
-		res_vec.push_back(res);
-	}
-	return res_vec;
-}
-
 
 void TEST_CalcRes(std::string test_name)
 {
