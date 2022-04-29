@@ -2,6 +2,7 @@
 #include <math.h>
 #include <fstream>
 #include <vector>
+#include <functional>
 
 using std::vector;
 using std::cout;
@@ -15,6 +16,8 @@ long double MODEL_CexpMx(long double& x, vector<long double>& params, int num)
 	return result;
 }
 
+
+
 long double MODEL_POLY(long double& x, vector<long double>& params, int num)
 {
 	long double result = 0.0l;
@@ -23,6 +26,23 @@ long double MODEL_POLY(long double& x, vector<long double>& params, int num)
 		result += params[i] * powl(x,i);
 	}
 	return result;
+}
+
+long double MODEL_LOG(long double& x, vector<long double>& params, int num)
+{
+	long double result;
+	result = params[0] * log10(x) + params[1];
+	return result;
+}
+
+long double LOG_MODEL_GRAD_dS_dm ()
+{
+
+}
+
+long double LOG_MODEL_GRAD_dS_db ()
+{
+
 }
 
 // Calculate d/dX (f) numerically -- return result in vector
@@ -48,6 +68,75 @@ vector<long double> CalcRes(vector<long double>& y_val, vector<long double>& mod
 }
 
 
+
+long double CalcMSR(vector<long double>& residuals, int& size)
+{
+	long double MSR = 0.0l; // mean-squared-residual
+	for(int i = 0; i < size; ++i)
+	{
+		// Technically the abs call is unnecessary bc r^2 > 0 no matter what
+		// But I want this code to read/be better for sure
+		MSR += abs(residuals[i]*residuals[i]);
+	}
+	MSR = MSR / size;
+	return MSR;
+}
+
+// returns vector of y values predicted by model
+vector<long double> MAP_MODEL(vector<long double>& x_vals, vector<long double> params, int& set_size, int& p_size, std::function<long double> model)
+{
+	vector<long double> f_val;
+	for (int i=0; i < set_size; ++i)
+	{
+		f_val.push_back(model(x_vals[i],params,p_size));
+	}
+	return f_val;
+}
+
+
+// Calculates gradient 2-vector for each parameter for exponential model
+// Size refers to number of data, p_size refers to number of model parameters
+// REQUIRES TESTING
+vector<long double> EXP_MODEL_GRAD_dS_da(vector<long double>& residuals, vector<long double>& x_vals, vector<long double>& params, int size, int p_size)
+{
+	long double grad_j;
+	vector<long double> grad;
+	for(int j=0; j < p_size; ++j)
+	{
+		grad_j = 0.0l;
+		for(int i=0; i < size; ++i)
+		{
+			grad_j += (-1.0l * MODEL_CexpMx(x_vals[i]) * residuals[i])/params[j];
+		}
+		grad_j = 2.0l * grad_j / size;
+		grad.push_back(grad_j);
+	}
+	return grad;
+}
+
+// Returns vector containing optimised model parameters (and final MSR) as calculated by steepest descent
+// Start by implementing algorithm for just the small exponential model --> then expand for model choice
+// init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
+vector<long double> minimise_msr(vector<long double>& x_vals, vector<long double>& y_data, vector<long double>& init_param, int set_size)
+{
+	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
+	int num_parameters = 2; // Recall that we're just starting with the exp model
+	int max_iteration = 10000; // maximum number of iterations before giving up
+
+	long double lambda = 0.001; // greed parameter
+	long double delta_s; // change in S from step to step;
+	// Calculate the vector?
+
+	// Calculate the initial residuals, S, vector
+	vector<long double> residuals = CalcRes()
+
+	int i = 0;
+	while(i < max_iteration) // we'll bring in the other criteria
+	{
+
+		++i;
+	}
+}
 
 
 //TEST
@@ -132,17 +221,45 @@ namespace DBG
 		cout << expected << std::endl;
 	}
 
+	void TEST_MODEL_LOG(std::string test_name)
+	{
+		cout << "\n" << test_name << std::endl;
+		vector<long double> t_pm;
+		long double x;
+		//Test 1:
+		t_pm = {3.13l,4.54l};
+		x = 0.34l;
+
+		long double expected = t_pm[0]*log10(x) + t_pm[1];
+		long double MODEL = MODEL_LOG(x,t_pm,2);
+		cout << MODEL << std::endl;
+		cout << expected << std::endl;
+
+		if(MODEL == expected)
+		{
+			cout << "PASS" << std::endl;
+		}
+	}
+
+
+	void RUN_TEST_HARNESS()
+	{
+		TEST_CalcRes("TEST: Calculating Residuals");
+
+		TEST_MODEL_EXP("TEST: Calculating model");
+
+		TEST_MODEL_POLY("TEST: Calculating polynomial model");
+
+		TEST_MODEL_LOG("TEST: Calculating log10 model");
+	}
 }
 
 
 
 int main()
 {
-	DBG::TEST_CalcRes("TEST: Calculating Residuals");
+	DBG::RUN_TEST_HARNESS();
 
-	DBG::TEST_MODEL_EXP("TEST: Calculating model");
-
-	DBG::TEST_MODEL_POLY("TEST: Calculating polynomial model");
 
 	// Choose the dataset
 
