@@ -8,40 +8,41 @@ using std::vector;
 using std::cout;
 using std::cin;
 
+enum Model {};
 
-long double MODEL_CexpMx(long double x, vector<long double> params, int num)
+double MODEL_CexpMx(double x, vector<double> params, int num)
 {
-	long double result;
+	double result;
 	cout << x << std::endl;
-	result = params[0] * expl(params[1]/x);
+	result = params[0] * exp(params[1]/x);
 	return result;
 }
 
 
 
-long double MODEL_POLY(long double& x, vector<long double>& params, int num)
+double MODEL_POLY(double& x, vector<double>& params, int num)
 {
-	long double result = 0.0l;
+	double result = 0.0l;
 	for(int i = 0; i < num; ++i)
 	{
-		result += params[i] * powl(x,i);
+		result += params[i] * pow(x,i);
 	}
 	return result;
 }
 
-long double MODEL_LOG(long double x, vector<long double> params, int num)
+double MODEL_LOG(double x, vector<double> params, int num)
 {
-	long double result;
+	double result;
 	result = params[0] * log10(x) + params[1];
 	return result;
 }
 
-long double LOG_MODEL_GRAD_dS_dm ()
+double LOG_MODEL_GRAD_dS_dm ()
 {
 
 }
 
-long double LOG_MODEL_GRAD_dS_db ()
+double LOG_MODEL_GRAD_dS_db ()
 {
 
 }
@@ -49,17 +50,17 @@ long double LOG_MODEL_GRAD_dS_db ()
 // Calculate d/dX (f) numerically -- return result in vector
 // param: input function i.e. the residual, or the MSR
 // param: differential variable
-vector<long double> CalcDiff()
+vector<double> CalcDiff()
 {
 
 }
 
 
 //Calculate the residuals -- returns the form as a vector
-vector<long double> CalcRes(vector<long double>& y_val, vector<long double>& model, int& size)
+vector<double> CalcRes(vector<double>& y_val, vector<double>& model, int& size)
 {
-	long double res;
-	vector<long double> res_vec;
+	double res;
+	vector<double> res_vec;
 	for(int i=0; i < size; ++i)
 	{
 		res = y_val[i]-model[i];
@@ -70,9 +71,9 @@ vector<long double> CalcRes(vector<long double>& y_val, vector<long double>& mod
 
 
 
-long double CalcMSR(vector<long double>& residuals, int& size)
+double CalcMSR(vector<double>& residuals, int& size)
 {
-	long double MSR = 0.0l; // mean-squared-residual
+	double MSR = 0.0; // mean-squared-residual
 	for(int i = 0; i < size; ++i)
 	{
 		// Technically the abs call is unnecessary bc r^2 > 0 no matter what
@@ -84,14 +85,12 @@ long double CalcMSR(vector<long double>& residuals, int& size)
 }
 
 // returns vector of y values predicted by model
-vector<long double> MAP_MODEL(vector<long double>& x_vals, vector<long double> params, int set_size, int p_size, std::function<long double (long double, vector<long double>, int)> model)
+vector<double> MAP_MODEL(vector<double>& x_vals, vector<double> params, int set_size, int p_size, std::function<double (double, vector<double>, int)> model)
 {
-	vector<long double> f_val;
+	vector<double> f_val;
 	cout << "MAPPING \n";
-
 	for (int i=0; i < set_size; ++i)
 	{
-
 		f_val.push_back(model(x_vals[i],params,p_size));
 	}
 	return f_val;
@@ -101,16 +100,16 @@ vector<long double> MAP_MODEL(vector<long double>& x_vals, vector<long double> p
 // Calculates gradient 2-vector for each parameter for exponential model
 // Size refers to number of data, p_size refers to number of model parameters
 // REQUIRES TESTING
-vector<long double> EXP_MODEL_GRAD_dS_da(vector<long double>& residuals, vector<long double>& x_vals, vector<long double>& params, int size, int p_size)
+vector<double> EXP_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x_vals, vector<double>& params, int size, int p_size)
 {
-	long double grad_j;
-	vector<long double> grad;
+	double grad_j;
+	vector<double> grad;
 	for(int j=0; j < p_size; ++j)
 	{
-		grad_j = 0.0l;
+		grad_j = 0.0;
 		for(int i=0; i < size; ++i)
 		{
-			grad_j += (-1.0l * MODEL_CexpMx(x_vals[i],params,2) * residuals[i])/params[j];
+			grad_j += (-1.0 * MODEL_CexpMx(x_vals[i],params,2) * residuals[i])/params[j];
 		}
 		grad_j = 2.0l * grad_j / size;
 		grad.push_back(grad_j);
@@ -121,18 +120,21 @@ vector<long double> EXP_MODEL_GRAD_dS_da(vector<long double>& residuals, vector<
 // Returns vector containing optimised model parameters (and final MSR) as calculated by steepest descent
 // Start by implementing algorithm for just the small exponential model --> then expand for model choice
 // init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
-vector<long double> minimise_msr(vector<long double>& x_vals, vector<long double>& y_data, vector<long double>& init_param, int set_size)
+vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vector<double>& init_param, int set_size)
 {
 	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
 	int num_parameters = 2; // Recall that we're just starting with the exp model
 	int max_iteration = 10000; // maximum number of iterations before giving up
 
-	long double lambda = 0.001; // greed parameter
-	long double delta_s; // change in S from step to step;
+
+	double lambda = 0.001; // greed parameter
+	double delta_s; // change in S from step to step;
 	// Calculate the vector?
 
 	// Calculate the initial residuals, S, vector
-	vector<long double> residuals = CalcRes()
+
+	vector<double> f_vals = MAP_MODEL(x_vals,init_param,set_size,num_parameters,MODEL_CexpMx);
+	vector<double> residuals = CalcRes();
 
 	int i = 0;
 	while(i < max_iteration) // we'll bring in the other criteria
@@ -148,7 +150,7 @@ namespace DBG
 {
 
 	// Should make this more good later but good for now
-	void DEBUG_PrintVec(vector<long double>& input_vec, int size)
+	void DEBUG_PrintVec(vector<double>& input_vec, int size)
 	{
 		for(int i = 0; i < size; ++i)
 		{
@@ -156,7 +158,7 @@ namespace DBG
 		}
 	}
 
-	void DEBUG_PrintVec(vector<long double>& input_vec, vector<long double> expected, int size)
+	void DEBUG_PrintVec(vector<double>& input_vec, vector<double> expected, int size)
 	{
 		for(int i = 0; i < size; ++i)
 		{
@@ -166,12 +168,12 @@ namespace DBG
 
 	void TEST_CalcRes(std::string test_name)
 	{
-		vector<long double> y_func = {1.1l, 1.9l, 3.1l};
-		vector<long double> f_func = {1.0l, 2.0l, 3.0l};
-		vector<long double> EXPECT = {0.1l, -0.1l, 0.1};
+		vector<double> y_func = {1.1, 1.9, 3.1};
+		vector<double> f_func = {1.0, 2.0, 3.0};
+		vector<double> EXPECT = {0.1, -0.1, 0.1};
 		int size = 3;
 
-		vector<long double> TEST_RESULT = CalcRes(y_func, f_func, size);
+		vector<double> TEST_RESULT = CalcRes(y_func, f_func, size);
 		cout << std::endl << test_name << "\n\n";
 		DEBUG_PrintVec(TEST_RESULT, EXPECT, size);
 	}
@@ -180,12 +182,12 @@ namespace DBG
 	{
 		cout << "\n" << test_name << std::endl;
 
-		long double expected, x;
-		vector<long double> test_params;
+		double expected, x;
+		vector<double> test_params;
 		//TEST 1 C=2.5, m=1.5 (p0, p1)
-		test_params={2.5l,1.5l};
-		x = 1.1l;
-		expected = 2.5l * expl(1.5/x);
+		test_params={2.5,1.5};
+		x = 1.1;
+		expected = 2.5 * expl(1.5/x);
 
 		if(isnan(MODEL_CexpMx(x,test_params,2)))
 		{
@@ -206,12 +208,12 @@ namespace DBG
 	void TEST_MODEL_POLY(std::string test_name)
 	{
 		cout << "\n" << test_name << std::endl;
-		vector<long double> t_pm;
-		long double x;
+		vector<double> t_pm;
+		double x;
 		// TEST 1 : 4.2 + 2.1x + 3.4x^2 + 5x^3; x = 0.2
-		t_pm = {4.2l,2.1l,3.4l,5.0l};
+		t_pm = {4.2,2.1,3.4,5.0};
 		x = 0.2l;
-		long double expected = t_pm[0] + t_pm[1]*x + t_pm[2]*x*x + t_pm[3]*x*x*x;
+		double expected = t_pm[0] + t_pm[1]*x + t_pm[2]*x*x + t_pm[3]*x*x*x;
 
 		if(MODEL_POLY(x,t_pm,4) == expected)
 		{
@@ -228,14 +230,14 @@ namespace DBG
 	void TEST_MODEL_LOG(std::string test_name)
 	{
 		cout << "\n" << test_name << std::endl;
-		vector<long double> t_pm;
-		long double x;
+		vector<double> t_pm;
+		double x;
 		//Test 1:
-		t_pm = {3.13l,4.54l};
-		x = 0.34l;
+		t_pm = {3.13,4.54};
+		x = 0.34;
 
-		long double expected = t_pm[0]*log10(x) + t_pm[1];
-		long double MODEL = MODEL_LOG(x,t_pm,2);
+		double expected = t_pm[0]*log10(x) + t_pm[1];
+		double MODEL = MODEL_LOG(x,t_pm,2);
 		cout << MODEL << std::endl;
 		cout << expected << std::endl;
 
@@ -248,13 +250,13 @@ namespace DBG
 	void TEST_MAP_MODEL(std::string test_name)
 	{
 		cout << "\n" << test_name << std::endl;
-		vector<long double> t_param = {1.2l,3.1l};
-		vector<long double> x_vals = {1.0l,2.0l,3.0l,4.0l};
+		vector<double> t_param = {1.0,3.1};
+		vector<double> x_vals = {1.0,2.0,3.0,4.0};
 		// but what to do now?
-		vector<long double> TEST_EXP = MAP_MODEL(x_vals, t_param, 4, 2, MODEL_CexpMx);
-		vector<long double> TEST_LOG = MAP_MODEL(x_vals, t_param, 4, 2, MODEL_LOG);
-		vector<long double> expon_expected;
-		vector<long double> log_expected;
+		vector<double> TEST_EXP = MAP_MODEL(x_vals, t_param, 4, 2, MODEL_CexpMx);
+		vector<double> TEST_LOG = MAP_MODEL(x_vals, t_param, 4, 2, MODEL_LOG);
+		vector<double> expon_expected;
+		vector<double> log_expected;
 
 		for(int i = 0; i < 4; ++i)
 		{
