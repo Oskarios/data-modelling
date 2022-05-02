@@ -3,17 +3,33 @@
 #include <fstream>
 #include <vector>
 #include <functional>
+#include <iterator>
+#include <sstream>
+#include <string>
 
 using std::vector;
 using std::cout;
 using std::cin;
 
-enum Model {};
+// enum Model {};
+const double k_GRAD_VEC_TOL = 0.0001;
+const double k_DELTA_MSR_TOL = 0.0001;
+
+// Returns the line from the geometry file as a vector
+vector<double> SplitLine(std::string line){
+    std::istringstream iss(line);
+
+    return vector< double>{
+        std::istream_iterator<double>(iss),
+        std::istream_iterator<double>()
+    };
+}
+
 
 double MODEL_CexpMx(double x, vector<double> params, int num)
 {
 	double result;
-	cout << x << std::endl;
+	// cout << x << std::endl;
 	result = params[0] * exp(params[1]/x);
 	return result;
 }
@@ -94,7 +110,7 @@ vector<double> MAP_MODEL(
 		std::function<double (double, vector<double>, int)> model)
 {
 	vector<double> f_val;
-	cout << "MAPPING \n";
+	// cout << "MAPPING \n";
 	for (int i=0; i < set_size; ++i)
 	{
 		f_val.push_back(model(x_vals[i],params,p_size));
@@ -133,6 +149,17 @@ vector<double> update_parameters (vector<double>& parameters, vector<double>& gr
 	return new_params;
 }
 
+double grad_mod_squared(vector<double>& grad_vector, int dimension)
+{
+	double gms = 0.0;
+	for(int i = 0; i < dimension; ++i)
+	{
+		gms += abs(grad_vector[i])*abs(grad_vector[i]);
+	}
+	return gms;
+}
+
+
 // Returns vector containing optimised model parameters (and final MSR) as calculated by steepest descent
 // Start by implementing algorithm for just the small exponential model --> then expand for model choice
 // init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
@@ -144,7 +171,9 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 
 
 	double lambda = 0.001; // greed parameter
-	double delta_s; // change in S from step to step;
+	double delta_s = 1000; // change in S from step to step;
+	double gms = 1000; // initial loop values	
+	
 
 
 	// Calculate the initial residuals, S, vector
@@ -154,15 +183,23 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 	double MSR_old = CalcMSR(residuals, set_size);
 	// Calculate the vector?
 	vector<double> grad_vector = EXP_MODEL_GRAD_dS_da(residuals,x_vals,params,set_size,num_parameters);
+	double MSR_new;
 
 	int i = 0;
-	while(i < max_iteration) // we'll bring in the other criteria
+	while(i < max_iteration || (delta_s < k_DELTA_MSR_TOL && gms < k_GRAD_VEC_TOL)) // we'll bring in the other criteria
 	{
 		// Change the parameters based on the gradient vector
 		params = update_parameters(params, grad_vector, num_parameters, lambda);
 		// Calculate the model with the updated model parameters
 		f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,MODEL_CexpMx);
-		double MSR_new = CalcMSR(residuals=CalcRes(y_data,f_vals,set_size),set_size);
+		MSR_new = CalcMSR(residuals=CalcRes(y_data,f_vals,set_size),set_size);
+
+		delta_s = MSR_new - MSR_old;
+		MSR_old = MSR_new;
+
+		gms = grad_mod_squared(grad_vector,num_parameters);
+		cout << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << std::endl;
+
 		++i;
 	}
 }
@@ -316,10 +353,34 @@ int main()
 
 
 	// Choose the dataset
+	std::ifstream ifile;
+	ifile.open("data_in/simple_set.dat");
+
+	vector<double> x_vals;
+	vector<double> y_vals;
+
+	vector<double> p_guess = {10.0,10.0};
+
+	int lines = 0;
+
+	for(std::string line; getline(ifile, line);)
+	{
+		if(line.front() == '#')
+		{
+			cout << "Line skipped " << line << std::endl;
+			continue;
+		}
+		x_vals.push_back(SplitLine(line)[0]);
+		y_vals.push_back(SplitLine(line)[1]);
+		++lines;
+
+	}
+
+	minimise_msr(x_vals,y_vals,p_guess,lines);
 
 	// Choose the model
 
 	// Ouput the stuff (where?)
-
+	ifile.close();
 	return 0;
 }
