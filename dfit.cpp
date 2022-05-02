@@ -85,7 +85,13 @@ double CalcMSR(vector<double>& residuals, int& size)
 }
 
 // returns vector of y values predicted by model
-vector<double> MAP_MODEL(vector<double>& x_vals, vector<double> params, int set_size, int p_size, std::function<double (double, vector<double>, int)> model)
+vector<double> MAP_MODEL(
+
+		vector<double>& x_vals,
+		vector<double>& params, 
+		int set_size, 
+		int p_size, 
+		std::function<double (double, vector<double>, int)> model)
 {
 	vector<double> f_val;
 	cout << "MAPPING \n";
@@ -117,10 +123,20 @@ vector<double> EXP_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x
 	return grad;
 }
 
+vector<double> update_parameters (vector<double>& parameters, vector<double>& grad, int& dimension, double& greed)
+{
+	vector<double> new_params;
+	for(int i=0; i  < dimension; ++i)
+	{
+		new_params.push_back(parameters[i]-grad[i] * greed);
+	}
+	return new_params;
+}
+
 // Returns vector containing optimised model parameters (and final MSR) as calculated by steepest descent
 // Start by implementing algorithm for just the small exponential model --> then expand for model choice
 // init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
-vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vector<double>& init_param, int set_size)
+vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vector<double>& params, int set_size)
 {
 	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
 	int num_parameters = 2; // Recall that we're just starting with the exp model
@@ -129,17 +145,24 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 
 	double lambda = 0.001; // greed parameter
 	double delta_s; // change in S from step to step;
-	// Calculate the vector?
+
 
 	// Calculate the initial residuals, S, vector
+	vector<double> f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,MODEL_CexpMx);
+	vector<double> residuals = CalcRes(y_data,f_vals,set_size);
 
-	vector<double> f_vals = MAP_MODEL(x_vals,init_param,set_size,num_parameters,MODEL_CexpMx);
-	vector<double> residuals = CalcRes();
+	double MSR_old = CalcMSR(residuals, set_size);
+	// Calculate the vector?
+	vector<double> grad_vector = EXP_MODEL_GRAD_dS_da(residuals,x_vals,params,set_size,num_parameters);
 
 	int i = 0;
 	while(i < max_iteration) // we'll bring in the other criteria
 	{
-
+		// Change the parameters based on the gradient vector
+		params = update_parameters(params, grad_vector, num_parameters, lambda);
+		// Calculate the model with the updated model parameters
+		f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,MODEL_CexpMx);
+		double MSR_new = CalcMSR(residuals=CalcRes(y_data,f_vals,set_size),set_size);
 		++i;
 	}
 }
