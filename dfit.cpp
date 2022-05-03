@@ -12,8 +12,8 @@ using std::cout;
 using std::cin;
 
 // enum Model {};
-const double k_GRAD_VEC_TOL = 0.0001;
-const double k_DELTA_MSR_TOL = 0.0001;
+const double k_GRAD_VEC_TOL = 0.000001;
+const double k_DELTA_MSR_TOL = 0.000001;
 
 // Returns the line from the geometry file as a vector
 vector<double> SplitLine(std::string line){
@@ -107,7 +107,9 @@ vector<double> MAP_MODEL(
 		vector<double>& params, 
 		int set_size, 
 		int p_size, 
-		std::function<double (double, vector<double>, int)> model)
+		std::function<double (double, vector<double>, int)> model
+	
+	)
 {
 	vector<double> f_val;
 	// cout << "MAPPING \n";
@@ -133,7 +135,7 @@ vector<double> EXP_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x
 		{
 			grad_j += (-1.0 * MODEL_CexpMx(x_vals[i],params,2) * residuals[i])/params[j];
 		}
-		grad_j = 2.0l * grad_j / size;
+		grad_j = 2.0 * grad_j / size;
 		grad.push_back(grad_j);
 	}
 	return grad;
@@ -144,7 +146,7 @@ vector<double> update_parameters (vector<double>& parameters, vector<double>& gr
 	vector<double> new_params;
 	for(int i=0; i  < dimension; ++i)
 	{
-		new_params.push_back(parameters[i]-grad[i] * greed);
+		new_params.push_back(parameters[i] - grad[i] * greed);
 	}
 	return new_params;
 }
@@ -167,12 +169,12 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 {
 	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
 	int num_parameters = 2; // Recall that we're just starting with the exp model
-	int max_iteration = 10000; // maximum number of iterations before giving up
+	int max_iteration = 100000;// maximum number of iterations before giving up
 
 
 	double lambda = 0.001; // greed parameter
 	double delta_s = 1000; // change in S from step to step;
-	double gms = 1000; // initial loop values	
+	double gms = 1000; 	  // initial loop values	
 	
 
 
@@ -186,22 +188,38 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 	double MSR_new;
 
 	int i = 0;
-	while(i < max_iteration || (delta_s < k_DELTA_MSR_TOL && gms < k_GRAD_VEC_TOL)) // we'll bring in the other criteria
+	while(!(delta_s < k_DELTA_MSR_TOL && gms < k_GRAD_VEC_TOL)) // we'll bring in the other criteria
 	{
 		// Change the parameters based on the gradient vector
 		params = update_parameters(params, grad_vector, num_parameters, lambda);
 		// Calculate the model with the updated model parameters
 		f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,MODEL_CexpMx);
-		MSR_new = CalcMSR(residuals=CalcRes(y_data,f_vals,set_size),set_size);
+		residuals.clear();
+		residuals = CalcRes(y_data,f_vals,set_size);
+		MSR_new = CalcMSR(residuals,set_size);
 
 		delta_s = MSR_new - MSR_old;
 		MSR_old = MSR_new;
+		grad_vector.clear();
+		grad_vector = EXP_MODEL_GRAD_dS_da(residuals,x_vals,params,set_size,num_parameters);
 
 		gms = grad_mod_squared(grad_vector,num_parameters);
-		cout << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << std::endl;
+		cout << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << "	" << MSR_new << std::endl;
 
 		++i;
+		if(i >= max_iteration){
+			break;
+		}
 	}
+
+	vector<double> minimised;
+	for(int i = 0; i < num_parameters; ++i)
+	{
+		minimised.push_back(params[i]);
+	}
+	minimised.push_back(MSR_new);
+	return minimised;
+
 }
 
 
@@ -359,7 +377,7 @@ int main()
 	vector<double> x_vals;
 	vector<double> y_vals;
 
-	vector<double> p_guess = {10.0,10.0};
+	vector<double> p_guess = {2.7,9.0};
 
 	int lines = 0;
 
@@ -373,14 +391,13 @@ int main()
 		x_vals.push_back(SplitLine(line)[0]);
 		y_vals.push_back(SplitLine(line)[1]);
 		++lines;
-
 	}
+	ifile.close();
 
 	minimise_msr(x_vals,y_vals,p_guess,lines);
 
 	// Choose the model
 
 	// Ouput the stuff (where?)
-	ifile.close();
 	return 0;
 }
