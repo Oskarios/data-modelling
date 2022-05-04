@@ -128,12 +128,16 @@ vector<double> EXP_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x
 {
 	double grad_j;
 	vector<double> grad;
+	vector<double> sum_term_param; // To contain {C,x_i}
+	sum_term_param.push_back(params[0]); // contains {C} now
 	for(int j=0; j < p_size; ++j)
 	{
 		grad_j = 0.0;
 		for(int i=0; i < size; ++i)
-		{
-			grad_j += (-1.0 * MODEL_CexpMx(x_vals[i],params,2) * residuals[i])/params[j];
+		{	
+			sum_term_param.push_back(x_vals[i]);
+			grad_j += (-1.0 * MODEL_CexpMx(x_vals[i],params,2) * residuals[i])/sum_term_param[j]; //don't use this bit
+			sum_term_param.pop_back();
 		}
 		grad_j = 2.0 * grad_j / size;
 		grad.push_back(grad_j);
@@ -165,10 +169,18 @@ double grad_mod_squared(vector<double>& grad_vector, int dimension)
 // Returns vector containing optimised model parameters (and final MSR) as calculated by steepest descent
 // Start by implementing algorithm for just the small exponential model --> then expand for model choice
 // init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
-vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vector<double>& params, int set_size)
+vector<double> minimise_msr(
+	vector<double>& x_vals, 
+	vector<double>& y_data, 
+	vector<double>& params, 
+	int set_size, 
+	int num_parameters,
+	std::function<double (double, vector<double>, int)> model_fn,
+	std::function<vector<double> (vector<double>&, vector<double>&, vector<double>&, int, int)> grad_vec_fn,
+	std::ofstream& output_file
+	)
 {
-	// Let's assume that we're getting the number of parameters correct -> for each model it'll be 'hardcoded'
-	int num_parameters = 2; // Recall that we're just starting with the exp model
+
 	int max_iteration = 100000;// maximum number of iterations before giving up
 
 
@@ -179,12 +191,13 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 
 
 	// Calculate the initial residuals, S, vector
-	vector<double> f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,MODEL_CexpMx);
+	vector<double> f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,model_fn);
 	vector<double> residuals = CalcRes(y_data,f_vals,set_size);
 
 	double MSR_old = CalcMSR(residuals, set_size);
 	// Calculate the vector?
-	vector<double> grad_vector = EXP_MODEL_GRAD_dS_da(residuals,x_vals,params,set_size,num_parameters);
+
+	vector<double> grad_vector = grad_vec_fn(residuals,x_vals,params,set_size,num_parameters);
 	double MSR_new;
 
 	int i = 0;
@@ -193,7 +206,8 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 		// Change the parameters based on the gradient vector
 		params = update_parameters(params, grad_vector, num_parameters, lambda);
 		// Calculate the model with the updated model parameters
-		f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,MODEL_CexpMx);
+
+		f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,model_fn);
 		residuals.clear();
 		residuals = CalcRes(y_data,f_vals,set_size);
 		MSR_new = CalcMSR(residuals,set_size);
@@ -201,16 +215,18 @@ vector<double> minimise_msr(vector<double>& x_vals, vector<double>& y_data, vect
 		delta_s = MSR_new - MSR_old;
 		MSR_old = MSR_new;
 		grad_vector.clear();
-		grad_vector = EXP_MODEL_GRAD_dS_da(residuals,x_vals,params,set_size,num_parameters);
+		grad_vector = grad_vec_fn(residuals,x_vals,params,set_size,num_parameters);
 
 		gms = grad_mod_squared(grad_vector,num_parameters);
-		cout << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << "	" << MSR_new << std::endl;
+		output_file << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << "	" << MSR_new << std::endl;
 
 		++i;
 		if(i >= max_iteration){
 			break;
 		}
 	}
+
+	cout << "\nIterations counted: " << i << std::endl;
 
 	vector<double> minimised;
 	for(int i = 0; i < num_parameters; ++i)
@@ -377,18 +393,25 @@ int main()
 	vector<vector<double>> k_param_init = {{10.0,10.0}}; // would like this to be a constant but it doesn't like it --> I am not smart enough for pointers etc.
 	const vector<int> k_model_param_dim = {2,2};
 	const vector<std::string> k_in_fnames = {"data_in/simple_set.dat"};
+	const vector<std::string> k_out_fname = {"data_out/simple_set_out.dat"};
 
 
 	//iterate over the datasets/models
 	std::ifstream ifile;
+	std::ofstream ofile;
+
 	vector<double> x_vals;
 	vector<double> y_vals;
+	vector<double> minimised_params;
 	int lines;
 
 	for(int i = 0; i < k_num_models; ++i)
 	{
+		minimised_params.clear();
 		//Open the relevant file
 		ifile.open(k_in_fnames[i]);
+		ofile.open(k_out_fname[i],std::ios::trunc);
+
 		x_vals.clear();
 		y_vals.clear();
 
@@ -407,39 +430,25 @@ int main()
 			++lines;
 		}
 
-
 		ifile.close();
 
-		minimise_msr(x_vals,y_vals,k_param_init[i],lines);
+		minimised_params = minimise_msr(x_vals,y_vals,k_param_init[i],lines,k_model_param_dim[i],k_fn_arr[i],k_grad_fn_arr[i],ofile);
+		ofile.close();
 
-	}
-
-	// Choose the dataset
-
-	vector<double> x_vals;
-	vector<double> y_vals;
-
-	vector<double> p_guess = {2.7,9.0};
-
-	int lines = 0;
-
-	for(std::string line; getline(ifile, line);)
-	{
-		if(line.front() == '#')
+		cout << std::endl;
+		for(int l = 0; l < k_model_param_dim[i]; ++l)
 		{
-			cout << "Line skipped " << line << std::endl;
-			continue;
+			cout << "P" << l << "	";
 		}
-		x_vals.push_back(SplitLine(line)[0]);
-		y_vals.push_back(SplitLine(line)[1]);
-		++lines;
+		cout << "MSR" << std::endl;
+		for(int k = 0; k <= k_model_param_dim[i]; ++k)
+		{
+			cout << minimised_params[k] << "	";
+		}
+
+		cout << std::endl;
+
 	}
-	ifile.close();
 
-	minimise_msr(x_vals,y_vals,p_guess,lines);
-
-	// Choose the model
-
-	// Ouput the stuff (where?)
 	return 0;
 }
