@@ -369,10 +369,52 @@ int main()
 {
 	DBG::RUN_TEST_HARNESS();
 
+	
+	const int k_num_models = 1;
+
+	const vector<std::function<double (double, vector<double>, int)>> k_fn_arr = {MODEL_CexpMx,MODEL_LOG};
+	const vector<std::function<vector<double> (vector<double>&, vector<double>&, vector<double>&, int, int)>> k_grad_fn_arr = {EXP_MODEL_GRAD_dS_da};
+	vector<vector<double>> k_param_init = {{10.0,10.0}}; // would like this to be a constant but it doesn't like it --> I am not smart enough for pointers etc.
+	const vector<int> k_model_param_dim = {2,2};
+	const vector<std::string> k_in_fnames = {"data_in/simple_set.dat"};
+
+
+	//iterate over the datasets/models
+	std::ifstream ifile;
+	vector<double> x_vals;
+	vector<double> y_vals;
+	int lines;
+
+	for(int i = 0; i < k_num_models; ++i)
+	{
+		//Open the relevant file
+		ifile.open(k_in_fnames[i]);
+		x_vals.clear();
+		y_vals.clear();
+
+		lines = 0;
+
+		for(std::string line; getline(ifile,line);)
+		{
+			if(line.front() == '#')
+			{
+				cout << "Line skipped " << line << std::endl;
+				continue;
+			}
+
+			x_vals.push_back(SplitLine(line)[0]);
+			y_vals.push_back(SplitLine(line)[1]);
+			++lines;
+		}
+
+
+		ifile.close();
+
+		minimise_msr(x_vals,y_vals,k_param_init[i],lines);
+
+	}
 
 	// Choose the dataset
-	std::ifstream ifile;
-	ifile.open("data_in/simple_set.dat");
 
 	vector<double> x_vals;
 	vector<double> y_vals;
