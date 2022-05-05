@@ -395,7 +395,7 @@ namespace DBG
 
 int main()
 {
-	DBG::RUN_TEST_HARNESS();
+	// DBG::RUN_TEST_HARNESS();
 
 
 	const int k_num_models = 2;
