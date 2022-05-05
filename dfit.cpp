@@ -6,6 +6,7 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include <algorithm>
 
 using std::vector;
 using std::cout;
@@ -50,26 +51,18 @@ double MODEL_LOG(double x, vector<double> params, int num)
 {
 	double result;
 	result = params[0] * log10(x) + params[1];
+	// cout << result << std::endl;
 	return result;
 }
 
-double LOG_MODEL_GRAD_dS_dm ()
-{
-
-}
-
-double LOG_MODEL_GRAD_dS_db ()
-{
-
-}
 
 // Calculate d/dX (f) numerically -- return result in vector
 // param: input function i.e. the residual, or the MSR
 // param: differential variable
-vector<double> CalcDiff()
-{
-
-}
+// vector<double> CalcDiff()
+// {
+//
+// }
 
 
 //Calculate the residuals -- returns the form as a vector
@@ -104,11 +97,11 @@ double CalcMSR(vector<double>& residuals, int& size)
 vector<double> MAP_MODEL(
 
 		vector<double>& x_vals,
-		vector<double>& params, 
-		int set_size, 
-		int p_size, 
+		vector<double>& params,
+		int set_size,
+		int p_size,
 		std::function<double (double, vector<double>, int)> model
-	
+
 	)
 {
 	vector<double> f_val;
@@ -134,7 +127,7 @@ vector<double> EXP_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x
 	{
 		grad_j = 0.0;
 		for(int i=0; i < size; ++i)
-		{	
+		{
 			sum_term_param.push_back(x_vals[i]);
 			grad_j += (-1.0 * MODEL_CexpMx(x_vals[i],params,2) * residuals[i])/sum_term_param[j]; //don't use this bit
 			sum_term_param.pop_back();
@@ -142,6 +135,25 @@ vector<double> EXP_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x
 		grad_j = 2.0 * grad_j / size;
 		grad.push_back(grad_j);
 	}
+	return grad;
+}
+
+vector<double> LOG_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x_vals, vector<double>& params, int size, int p_size)
+{
+	double grad_j;
+	vector<double> grad;
+
+	for(int j = 0; j < p_size; ++j)
+	{
+		grad_j = 0.0;
+		for(int i=0; i < size; ++i)
+		{
+			grad_j += -residuals[i] * ((j^1)*log10(x_vals[i]) + (j && 1));
+		}
+		grad_j = 2.0 * grad_j / size;
+		grad.push_back(grad_j);
+	}
+	// std::cout << grad[0] << "\t" << grad[1] << std::endl;
 	return grad;
 }
 
@@ -170,10 +182,10 @@ double grad_mod_squared(vector<double>& grad_vector, int dimension)
 // Start by implementing algorithm for just the small exponential model --> then expand for model choice
 // init_param --> guesses for parameters, but should we have the lambda here? change later perhaps
 vector<double> minimise_msr(
-	vector<double>& x_vals, 
-	vector<double>& y_data, 
-	vector<double>& params, 
-	int set_size, 
+	vector<double>& x_vals,
+	vector<double>& y_data,
+	vector<double>& params,
+	int set_size,
 	int num_parameters,
 	std::function<double (double, vector<double>, int)> model_fn,
 	std::function<vector<double> (vector<double>&, vector<double>&, vector<double>&, int, int)> grad_vec_fn,
@@ -184,10 +196,10 @@ vector<double> minimise_msr(
 	int max_iteration = 100000;// maximum number of iterations before giving up
 
 
-	double lambda = 0.001; // greed parameter
+	double lambda = 0.01; // greed parameter
 	double delta_s = 1000; // change in S from step to step;
-	double gms = 1000; 	  // initial loop values	
-	
+	double gms = 1000; 	  // initial loop values
+
 
 
 	// Calculate the initial residuals, S, vector
@@ -385,15 +397,15 @@ int main()
 {
 	DBG::RUN_TEST_HARNESS();
 
-	
-	const int k_num_models = 1;
+
+	const int k_num_models = 2;
 
 	const vector<std::function<double (double, vector<double>, int)>> k_fn_arr = {MODEL_CexpMx,MODEL_LOG};
-	const vector<std::function<vector<double> (vector<double>&, vector<double>&, vector<double>&, int, int)>> k_grad_fn_arr = {EXP_MODEL_GRAD_dS_da};
-	vector<vector<double>> k_param_init = {{10.0,10.0}}; // would like this to be a constant but it doesn't like it --> I am not smart enough for pointers etc.
+	const vector<std::function<vector<double> (vector<double>&, vector<double>&, vector<double>&, int, int)>> k_grad_fn_arr = {EXP_MODEL_GRAD_dS_da, LOG_MODEL_GRAD_dS_da};
+	vector<vector<double>> k_param_init = {{10.0,10.0},{-5.0,5.0}}; // would like this to be a constant but it doesn't like it --> I am not smart enough for pointers etc.
 	const vector<int> k_model_param_dim = {2,2};
-	const vector<std::string> k_in_fnames = {"data_in/simple_set.dat"};
-	const vector<std::string> k_out_fname = {"data_out/simple_set_out.dat"};
+	const vector<std::string> k_in_fnames = {"data_in/simple_set.dat","data_in/pace_set.dat"};
+	const vector<std::string> k_out_fname = {"data_out/simple_set_out.dat","data_out/pace_set_out.dat"};
 
 
 	//iterate over the datasets/models
@@ -425,10 +437,22 @@ int main()
 				continue;
 			}
 
+			// std::replace(line.begin(),line.end(),',','\0');
+			//remove the commas
+			line.erase(remove(line.begin(),line.end(),','),line.end());
+			// cout << line << std::endl;
+
 			x_vals.push_back(SplitLine(line)[0]);
 			y_vals.push_back(SplitLine(line)[1]);
+
 			++lines;
 		}
+
+		// for(int db = 0; db < lines; ++db)
+		// {
+		// 	cout << x_vals[db] << "\t" << y_vals[db] << std::endl;
+		// }
+
 
 		ifile.close();
 
@@ -446,9 +470,10 @@ int main()
 			cout << minimised_params[k] << "	";
 		}
 
-		cout << std::endl;
+		cout << "\n\n";
 
 	}
+
 
 	return 0;
 }
