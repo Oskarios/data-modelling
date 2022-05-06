@@ -45,6 +45,8 @@ vector<vector<double>> set_weights(vector<double>& raw_weights, int layer_index,
 int main()
 {
 
+
+
 	vector<vector<double>> hidden_weights(3,vector<double>(2,0)); // size 2
 	vector<double> random;
 	std::cout << hidden_weights.size() << "\n";
@@ -82,10 +84,26 @@ int main()
 
 	vector<double> hidden_output; // Calculate these by the weighting of the stuff
 
+	vector<vector<vector<double>>> network;
+	network.push_back(hidden_weights);
+	network.push_back(output_weights);
 
 	double weight_i;
 	double z;
 	//Calculat the output of the sigmoid functions for the hidden layer
+
+	for(int i = 0; i < 2; ++i)
+	{
+		for(int j = 0; j < l_node_count[i + 1]; ++j)
+		{
+			for(int k = 0; k < 2; ++k)
+			{
+				std::cout << "NODE LAYER L:" << i + 1 << "\t";
+				std::cout << j << "\t" << k << "\t" << network[i][j][k] << "\n";
+			}
+		}
+	}
+
 
 	std::cout << "Output from hidden layer: \n";
 	for(int i = 0; i < l_node_count[1]; ++i)
