@@ -83,6 +83,24 @@ vector<vector<double>> prime_output_vec (vector<double>& input_set, vector<vecto
 // 	return result;
 // }
 
+vector<double> grad_weights (vector<vector<double>>& weights, vector<double>& output_set, vector<double>& expected, vector<double>& input, vector<double>& grad_vec)
+{
+	double grad_j;
+	// std::cout << "GRAD WEIGHTS "<< weights.size() << std::endl;
+	for(int i = 0; i < weights.size(); ++i)
+	{
+		grad_j = 0.0;
+		for(int j = 0; j < output_set.size(); ++j)
+		{
+			grad_j += (output_set[j] - expected[j]) * output_set[j]*(1-output_set[j]) * input[i];
+		}
+		grad_j = 2*grad_j / output_set.size();
+		grad_vec[i] = grad_j;
+	}
+	return grad_vec;
+}
+
+
 int main()
 {
 
@@ -152,7 +170,7 @@ int main()
 		layer_output = prime_output_vec(neural_inputs[i],layer_output);
 		layer_output = feed_forward(network,net_bias,layer_output);
 		neural_training_outputs[i] = layer_output[2][0];
-		std::cout << neural_inputs[i][0] << " "<< neural_inputs[i][1] << " " << neural_training_outputs[i] << "\n";
+		// std::cout << neural_inputs[i][0] << " "<< neural_inputs[i][1] << " " << neural_training_outputs[i] << "\n";
 	}
 
 	//Caculate the loss function
@@ -160,6 +178,44 @@ int main()
 
 	std::cout << "\nInitial Loss: " << loss << std::endl;
 
+	// hoW the poop do I do this?
+	double loss_new;
+	double delta_loss = 0.01;
+
+	vector<double> d_weight_hidden(l_node_count[1]*l_node_count[2],0);
+
+	// std:: cout << "NETWORK " << network[1].size();
+	std::cout << std::endl;
+
+	// std::cout << "D_WEIGHT_HIDDEN  " << d_weight_hidden[0] << " "<< d_weight_hidden[1] <<  " " <<d_weight_hidden[2] << std::endl;
+
+	while(true)
+	{
+		std::cout << "LOSS: " << loss << std::endl;
+		// Set d_weight
+		d_weight_hidden = grad_weights(network[0],neural_training_outputs,expected_or,layer_output[1],d_weight_hidden);
+		// std::cout << "D_WEIGHT_HIDDEN  " << d_weight_hidden[0] << " "<< d_weight_hidden[1] <<  " " <<d_weight_hidden[2] << std::endl;
+
+		//update the WEIGHTS
+		for(int j = 0; j < d_weight_hidden.size(); ++j)
+		{
+			network[0][j][0] += 0.01 * d_weight_hidden[j];
+		}
+
+		// Calculate new output
+		for(int i = 0; i < neural_inputs.size(); ++i)
+		{
+			layer_output = prime_output_vec(neural_inputs[i],layer_output);
+			layer_output = feed_forward(network,net_bias,layer_output);
+			neural_training_outputs[i] = layer_output[2][0];
+			// std::cout << neural_inputs[i][0] << " "<< neural_inputs[i][1] << " " << neural_training_outputs[i] << "\n";
+		}
+		// Calculate new loss
+		loss_new = loss_function(neural_training_outputs, expected_or);
+		//repeat?
+		delta_loss = loss_new - loss;
+		loss = loss_new;
+	}
 
 
 	// std::cout << layer_output[2][0] << std::endl;
