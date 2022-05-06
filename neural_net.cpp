@@ -108,14 +108,6 @@ int main()
 	// std::cout << "RAH" << network[1][1][0];
 	std::cout << "\n";
 
-	//Training set for neural network for OR gate
-	vector<vector<double>> neural_inputs = {
-		{0,0},
-		{0,1},
-		{1,0},
-		{1,1}
-	};
-
 	layer_output = feed_forward(network,net_bias,layer_output);
 
 	std::cout << layer_output[2][0] << std::endl;
