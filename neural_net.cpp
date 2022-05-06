@@ -25,35 +25,46 @@ vector<vector<double>> set_weights(vector<double>& raw_weights, int layer_index,
 		for(int j = 0; j < output_vec[i].size(); ++j)
 		{
 			vtemp.push_back(raw_weights[index]);
-			// std::cout << raw_weights[index] << "\t" << i << "\t" << j << "\t" << output_vec[j][i] << std::endl;
 			++index;
 		}
-
-		std::cout << "VTEMP: ";
-		for(int k = 0; k < vtemp.size(); ++k)
-		{
-			std::cout << vtemp[k] << "\t";
-		}
-		std::cout << std::endl;
-
 		output_vec[i].clear();
 		output_vec[i] = vtemp;
 	}
 	return output_vec;
 }
 
+vector<vector<double>> feed_forward (
+	vector<vector<vector<double>>>& weights,
+	vector<vector<double>>& node_bias,
+	vector<vector<double>>& node_outputs
+  )
+{
+	double weight_i;
+	double z;
+	for(int i = 1; i < layers; ++i)
+	{
+		for(int j = 0; j < l_node_count[i]; ++j)
+		{
+			weight_i = 0.0;
+			for(int k = 0; k < l_node_count[i-1]; ++k)
+			{
+				weight_i += weights[i-1][j][k] * node_outputs[i-1][k];
+			}
+			z = node_bias[i-1][j] + weight_i;
+			node_outputs[i][j] = activation(z);
+		}
+	}
+
+	return node_outputs;
+}
+
 int main()
 {
 
 	vector<vector<double>> hidden_weights(3,vector<double>(2,0)); // size 2
-	vector<double> random;
 	std::cout << hidden_weights.size() << "\n";
-
-
 	vector<vector<double>> output_weights(1,vector<double>(3,0));
-
-
-	std::cout << "Init test: " << hidden_weights[0][0] << std::endl;
+	// std::cout << "Init test: " << hidden_weights[0][0] << std::endl;
 
 	// Set bias of all nodes to 0
 	vector<double> hidden_bias(l_node_count[1],0);
@@ -63,71 +74,51 @@ int main()
 
 	hidden_weights = set_weights(raw_hidden_weights,1,hidden_weights);
 
-	std::cout << "We reached here\n";
-
-	for(int i = 0; i < 3; ++i)
-	{
-		for(int j = 0; j < 2; ++j)
-		{
-			std::cout << i << "\t" << j << "\t" << hidden_weights[i][j] << "\n";
-		}
-	}
-
-
 	// index = 0;
 	vector<double> raw_output_weights = {0.2,-0.9,0.1};
 	output_weights = set_weights(raw_output_weights,2,output_weights);
 
-	vector<double> input = {1.0,2.0};
+	vector<vector<double>> layer_output;
 
-	vector<double> hidden_output; // Calculate these by the weighting of the stuff
+	vector<double> n_input = {1.0,2.0};
+	vector<double> hidden_output(l_node_count[1],0.0); // Calculate these by the weighting of the stuff
+	// vector<double> n_output;
+	vector<double> output_output(l_node_count[2],0.0);
 
+	layer_output.push_back(n_input); 	   // i = 0
+	layer_output.push_back(hidden_output); // i = 1
+	layer_output.push_back(output_output); // i = 2
+
+	vector<vector<vector<double>>> network;
+	network.push_back(hidden_weights);
+	network.push_back(output_weights);
+
+	vector<vector<double>> net_bias;
+	net_bias.push_back(hidden_bias);
+	net_bias.push_back(output_bias);
 
 	double weight_i;
 	double z;
 	//Calculat the output of the sigmoid functions for the hidden layer
 
-	std::cout << "Output from hidden layer: \n";
-	for(int i = 0; i < l_node_count[1]; ++i)
-	{
-		weight_i = 0.0;
-		for(int j = 0; j < l_node_count[1-1]; ++j)
-		{
-			// Sum up your weights
-			weight_i += hidden_weights[i][j] * input[j];
-		}
-		// Add the bias for each node
-		z = hidden_bias[i] + weight_i;
-		// Calculate the sigmoid/switching function
-		hidden_output.push_back(activation(z));
-		// Assign the hidden node output for node i (in hidden layer)
-		//Debug line
-		std::cout << i << "\t" << hidden_output[i] << std::endl;
-	}
+	// std::cout << layer_output[0][0] << "\t" << layer_output[0][1] << "\n";
+	// std::cout << layer_output[1][0] << "\t" << layer_output[2][3] << "\n";
 
-	// std::cout << l_node_count.size() << std::endl;
+	// Iterate over the layers of weights of the network etc.
+	// std::cout << "RAH" << network[1][1][0];
+	std::cout << "\n";
 
-	vector<double> output_output(l_node_count[2]);
-	std::cout << "\nNetwork Output:\n";
+	//Training set for neural network for OR gate
+	vector<vector<double>> neural_inputs = {
+		{0,0},
+		{0,1},
+		{1,0},
+		{1,1}
+	};
 
-	// PROCESS THE OUTPUT LAYER
-	for(int i = 0; i < l_node_count[2]; ++i)
-	{
-		weight_i = 0.0;
-		for(int j = 0; j < l_node_count[1]; ++j)
-		{
-			// std::cout << output_weights[i][j] << "\t" << hidden_output[j] << std::endl;
+	layer_output = feed_forward(network,net_bias,layer_output);
 
-			weight_i += output_weights[i][j] * hidden_output[j];
-		}
-
-		z = output_bias[i] + weight_i;
-
-		output_output.clear();
-		output_output.push_back(activation(z));
-		std::cout << i << "\t" << output_output[i] << std::endl;
-	}
-
+	std::cout << layer_output[2][0] << std::endl;
 
 
 	return 0;
