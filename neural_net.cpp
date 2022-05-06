@@ -80,7 +80,7 @@ int main()
 
 	vector<vector<double>> layer_output;
 
-	vector<double> n_input = {1.0,2.0};
+	vector<double> n_input = {2.0,1.0};
 	vector<double> hidden_output(l_node_count[1],0.0); // Calculate these by the weighting of the stuff
 	// vector<double> n_output;
 	vector<double> output_output(l_node_count[2],0.0);
@@ -110,6 +110,10 @@ int main()
 
 	layer_output = feed_forward(network,net_bias,layer_output);
 
+
+	std::cout << "NN INPUT: " << layer_output[0][0] << "\t" << layer_output[0][1] << "\n";
+
+	std::cout << "NN RESULT: ";
 	std::cout << layer_output[2][0] << std::endl;
 
 
