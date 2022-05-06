@@ -39,7 +39,7 @@ double MODEL_CexpMx(double x, vector<double> params, int num)
 
 double MODEL_POLY(double& x, vector<double>& params, int num)
 {
-	double result = 0.0l;
+	double result = 0.0;
 	for(int i = 0; i < num; ++i)
 	{
 		result += params[i] * pow(x,i);
