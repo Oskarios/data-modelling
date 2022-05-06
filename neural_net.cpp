@@ -25,28 +25,43 @@ vector<vector<double>> set_weights(vector<double>& raw_weights, int layer_index,
 		for(int j = 0; j < output_vec[i].size(); ++j)
 		{
 			vtemp.push_back(raw_weights[index]);
-			// std::cout << raw_weights[index] << "\t" << i << "\t" << j << "\t" << output_vec[j][i] << std::endl;
 			++index;
 		}
-
-		// std::cout << "VTEMP: ";
-		// for(int k = 0; k < vtemp.size(); ++k)
-		// {
-		// 	std::cout << vtemp[k] << "\t";
-		// }
-		// std::cout << std::endl;
-
 		output_vec[i].clear();
 		output_vec[i] = vtemp;
 	}
 	return output_vec;
 }
 
+vector<vector<double>> feed_forward (
+	vector<vector<vector<double>>>& weights,
+	vector<vector<double>>& node_bias,
+	vector<vector<double>>& node_outputs
+  )
+{
+	double weight_i;
+	double z;
+	for(int i = 1; i < layers; ++i)
+	{
+		for(int j = 0; j < l_node_count[i]; ++j)
+		{
+			weight_i = 0.0;
+			for(int k = 0; k < l_node_count[i-1]; ++k)
+			{
+				weight_i += weights[i-1][j][k] * node_outputs[i-1][k];
+			}
+			z = node_bias[i-1][j] + weight_i;
+			node_outputs[i][j] = activation(z);
+		}
+	}
+
+	return node_outputs;
+}
+
 int main()
 {
 
 	vector<vector<double>> hidden_weights(3,vector<double>(2,0)); // size 2
-	vector<double> random;
 	std::cout << hidden_weights.size() << "\n";
 	vector<vector<double>> output_weights(1,vector<double>(3,0));
 	// std::cout << "Init test: " << hidden_weights[0][0] << std::endl;
@@ -58,17 +73,6 @@ int main()
 	vector<double> raw_hidden_weights = {0.4,0.2,0.1,-0.2,0.5,0.8};
 
 	hidden_weights = set_weights(raw_hidden_weights,1,hidden_weights);
-
-	// std::cout << "We reached here\n";
-
-	// for(int i = 0; i < 3; ++i)
-	// {
-	// 	for(int j = 0; j < 2; ++j)
-	// 	{
-	// 		std::cout << i << "\t" << j << "\t" << hidden_weights[i][j] << "\n";
-	// 	}
-	// }
-	//
 
 	// index = 0;
 	vector<double> raw_output_weights = {0.2,-0.9,0.1};
@@ -104,27 +108,15 @@ int main()
 	// std::cout << "RAH" << network[1][1][0];
 	std::cout << "\n";
 
-	for(int i = 1; i < layers; ++i)
-	{
-		for(int j = 0; j < l_node_count[i]; ++j)
-		{
-			weight_i = 0.0;
-			for(int k = 0; k < l_node_count[i-1]; ++k)
-			{
-				// std::cout << i << j << k << std::endl;
-				weight_i += network[i-1][j][k] * layer_output[i - 1][k];
-			}
+	//Training set for neural network for OR gate
+	vector<vector<double>> neural_inputs = {
+		{0,0},
+		{0,1},
+		{1,0},
+		{1,1}
+	};
 
-			// std::cout << "BIAS: " << net_bias[i-1][j] << "\n";
-			z = net_bias[i-1][j] + weight_i;
-			layer_output[i][j] = activation(z);
-			std::cout << "OUTPUT: " << layer_output[i][j] << "\n";
-
-			// layer_output[i+1].push_back(activation(z));
-
-			// std::cout << i << "\t" << layer_output[i][j] << "\n";
-		}
-	}
+	layer_output = feed_forward(network,net_bias,layer_output);
 
 	std::cout << layer_output[2][0] << std::endl;
 
