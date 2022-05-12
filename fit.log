@@ -106,3 +106,231 @@ correlation matrix of the fit parameters:
                 m      b      
 m               1.000 
 b              -0.977  1.000 
+
+
+*******************************************************************************
+Sun May  8 21:17:35 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x^b
+fitted parameters initialized with current variable values
+
+
+
+*******************************************************************************
+Sun May  8 21:17:57 2022
+
+
+FIT:    data read from 'varying_tolerance'
+        format = z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x^b
+BREAK: Need via and either parameter list or file
+
+*******************************************************************************
+Sun May  8 21:18:16 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   a             b            
+   0 4.6938589122e+06   0.00e+00  1.27e-02    1.000000e+00   1.000000e+00
+
+Current data point
+=========================
+#               = 1 out of 7
+x               = -755.441       
+z               = 24             
+
+Current set of parameters
+=========================
+a               = -755.441       
+b               = -1590.58       
+
+BREAK: Undefined value during function evaluation
+
+*******************************************************************************
+Sun May  8 21:18:35 2022
+
+
+FIT:    data read from 'varying_tolerance'
+        format = z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b
+BREAK: Need via and either parameter list or file
+
+*******************************************************************************
+Sun May  8 21:20:00 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b
+fitted parameters initialized with current variable values
+
+
+Current data point
+=========================
+#               = 1 out of 7
+x               = -755.441       
+z               = 24             
+
+Current set of parameters
+=========================
+a               = -755.441       
+b               = -1590.58       
+
+BREAK: Undefined value during function evaluation
+
+*******************************************************************************
+Sun May  8 21:21:55 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b + c
+fitted parameters initialized with current variable values
+
+
+Current data point
+=========================
+#               = 1 out of 7
+x               = -755.441       
+z               = 24             
+
+Current set of parameters
+=========================
+a               = -755.441       
+b               = -1590.58       
+c               = 1              
+
+BREAK: Undefined value during function evaluation
+
+*******************************************************************************
+Sun May  8 21:22:07 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b + c
+fitted parameters initialized with current variable values
+
+
+Current data point
+=========================
+#               = 1 out of 7
+x               = -755.441       
+z               = 24             
+
+Current set of parameters
+=========================
+a               = -755.441       
+b               = -1590.58       
+c               = 1              
+
+BREAK: Undefined value during function evaluation
+
+*******************************************************************************
+Sun May  8 21:22:09 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b + c
+fitted parameters initialized with current variable values
+
+
+Current data point
+=========================
+#               = 1 out of 7
+x               = -755.441       
+z               = 24             
+
+Current set of parameters
+=========================
+a               = -755.441       
+b               = -1590.58       
+c               = 1              
+
+BREAK: Undefined value during function evaluation
+
+*******************************************************************************
+Sun May  8 21:27:06 2022
+
+
+FIT:    data read from 'varying_tolerance' using 1:2
+        format = x:z
+        x range restricted to [2.13298e-09 : 0.0674507]
+        #datapoints = 7
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=a*x**b + c
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   a             b             c            
+   0 3.6637491613e+10   0.00e+00  2.18e+05   -7.554409e+02  -2.917000e-01   1.000000e+00
+4037 2.7847841304e+01  -3.11e-01  2.18e-05    1.243360e+05  -7.647956e-04  -1.247471e+05
+
+After 4037 iterations the fit converged.
+final sum of squares of residuals : 27.8478
+rel. change during last iteration : -3.11444e-06
+
+degrees of freedom    (FIT_NDF)                        : 4
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 2.63855
+variance of residuals (reduced chisquare) = WSSR/ndf   : 6.96196
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+a               = 124336           +/- 1.855e+05    (149.2%)
+b               = -0.000764796     +/- 0.001131     (147.9%)
+c               = -124747          +/- 1.855e+05    (148.7%)
+
+correlation matrix of the fit parameters:
+                a      b      c      
+a               1.000 
+b               1.000  1.000 
+c              -1.000 -1.000  1.000 

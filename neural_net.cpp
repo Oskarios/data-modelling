@@ -87,16 +87,26 @@ vector<double> grad_weights (vector<vector<double>>& weights, vector<double>& ou
 {
 	double grad_j;
 	// std::cout << "GRAD WEIGHTS "<< weights.size() << std::endl;
+	double input_sum = 0;
+	double n;
+	double a;
+	for(int k = 0; k < input.size(); ++k)
+	{
+		input_sum += input[k];
+	}
 	for(int i = 0; i < weights.size(); ++i)
 	{
 		grad_j = 0.0;
 		for(int j = 0; j < output_set.size(); ++j)
 		{
-			grad_j += (output_set[j] - expected[j]) * output_set[j]*(1-output_set[j]) * input[i];
+			n = output_set[j];
+			a = expected[j];
+			grad_j += (n*n*(1-n-a)-a*n) * input_sum;
 		}
 		grad_j = 2*grad_j / output_set.size();
 		grad_vec[i] = grad_j;
 	}
+
 	return grad_vec;
 }
 
@@ -170,7 +180,7 @@ int main()
 		layer_output = prime_output_vec(neural_inputs[i],layer_output);
 		layer_output = feed_forward(network,net_bias,layer_output);
 		neural_training_outputs[i] = layer_output[2][0];
-		// std::cout << neural_inputs[i][0] << " "<< neural_inputs[i][1] << " " << neural_training_outputs[i] << "\n";
+		std::cout << neural_inputs[i][0] << " "<< neural_inputs[i][1] << " " << neural_training_outputs[i] << "\n";
 	}
 
 	//Caculate the loss function
@@ -189,7 +199,9 @@ int main()
 
 	// std::cout << "D_WEIGHT_HIDDEN  " << d_weight_hidden[0] << " "<< d_weight_hidden[1] <<  " " <<d_weight_hidden[2] << std::endl;
 
-	while(true)
+	double learning_rate = 0.01;
+
+	while(!false)
 	{
 		std::cout << "LOSS: " << loss << std::endl;
 		// Set d_weight
@@ -199,7 +211,7 @@ int main()
 		//update the WEIGHTS
 		for(int j = 0; j < d_weight_hidden.size(); ++j)
 		{
-			network[0][j][0] += 0.01 * d_weight_hidden[j];
+			network[0][j][0] += learning_rate * d_weight_hidden[j];
 		}
 
 		// Calculate new output

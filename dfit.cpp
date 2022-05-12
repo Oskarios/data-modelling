@@ -14,7 +14,8 @@ using std::cin;
 
 // enum Model {};
 const double k_GRAD_VEC_TOL = 0.000001;
-const double k_DELTA_MSR_TOL = 0.000001;
+const double k_DELTA_MSR_TOL = 0.001;
+const double lambda = 0.01;
 
 // Returns the line from the geometry file as a vector
 vector<double> SplitLine(std::string line){
@@ -157,12 +158,12 @@ vector<double> LOG_MODEL_GRAD_dS_da(vector<double>& residuals, vector<double>& x
 	return grad;
 }
 
-vector<double> update_parameters (vector<double>& parameters, vector<double>& grad, int& dimension, double& greed)
+vector<double> update_parameters (vector<double>& parameters, vector<double>& grad, int& dimension)
 {
 	vector<double> new_params;
 	for(int i=0; i  < dimension; ++i)
 	{
-		new_params.push_back(parameters[i] - grad[i] * greed);
+		new_params.push_back(parameters[i] - grad[i] * lambda);
 	}
 	return new_params;
 }
@@ -196,7 +197,7 @@ vector<double> minimise_msr(
 	int max_iteration = 100000;// maximum number of iterations before giving up
 
 
-	double lambda = 0.01; // greed parameter
+	 // greed parameter
 	double delta_s = 1000; // change in S from step to step;
 	double gms = 1000; 	  // initial loop values
 
@@ -213,10 +214,10 @@ vector<double> minimise_msr(
 	double MSR_new;
 
 	int i = 0;
-	while(!(delta_s < k_DELTA_MSR_TOL && gms < k_GRAD_VEC_TOL)) // we'll bring in the other criteria
+	while(!(gms < k_GRAD_VEC_TOL)) // we'll bring in the other criteria
 	{
 		// Change the parameters based on the gradient vector
-		params = update_parameters(params, grad_vector, num_parameters, lambda);
+		params = update_parameters(params, grad_vector, num_parameters);
 		// Calculate the model with the updated model parameters
 
 		f_vals = MAP_MODEL(x_vals,params,set_size,num_parameters,model_fn);
@@ -230,7 +231,7 @@ vector<double> minimise_msr(
 		grad_vector = grad_vec_fn(residuals,x_vals,params,set_size,num_parameters);
 
 		gms = grad_mod_squared(grad_vector,num_parameters);
-		output_file << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << "	" << MSR_new << std::endl;
+		output_file << i << "\t" << params[0] << "	" << params[1] << "	 " << delta_s << "	" << gms << "	" << MSR_new << std::endl;
 
 		++i;
 		if(i >= max_iteration){
@@ -402,7 +403,7 @@ int main()
 
 	const vector<std::function<double (double, vector<double>, int)>> k_fn_arr = {MODEL_CexpMx,MODEL_LOG};
 	const vector<std::function<vector<double> (vector<double>&, vector<double>&, vector<double>&, int, int)>> k_grad_fn_arr = {EXP_MODEL_GRAD_dS_da, LOG_MODEL_GRAD_dS_da};
-	vector<vector<double>> k_param_init = {{10.0,10.0},{-5.0,5.0}}; // would like this to be a constant but it doesn't like it --> I am not smart enough for pointers etc.
+	vector<vector<double>> k_param_init = {{100.0,100.0},{10.0,10.0}}; // would like this to be a constant but it doesn't like it --> I am not smart enough for pointers etc.
 	const vector<int> k_model_param_dim = {2,2};
 	const vector<std::string> k_in_fnames = {"data_in/simple_set.dat","data_in/pace_set.dat"};
 	const vector<std::string> k_out_fname = {"data_out/simple_set_out.dat","data_out/pace_set_out.dat"};

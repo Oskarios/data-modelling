@@ -1,0 +1,13 @@
+set yrange [-40:1400]
+
+# set logscale x
+# set pointsize 100
+set xlabel "Level of tolerance in GMS"
+# set ylabel "Final Mean-Square Residual Calculated"
+set ylabel "Number of Iterations to Converge"
+
+f(x)=a*x**b + c
+b=-0.2917
+fit f(x) 'varying_tolerance' using 1:2 via a,b,c
+
+p 'varying_tolerance' using 1:2 ps 2 pt 6, f(x)
